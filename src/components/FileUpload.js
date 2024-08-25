@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db } from '../firebase/firebase';
+import {gemini} from '../firebase/gemini'
 
 const FileUpload = () => {
   const [file, setFile] = useState(null);
