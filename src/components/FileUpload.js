@@ -34,6 +34,8 @@ const FileUpload = () => {
         getDownloadURL(uploadTask.snapshot.ref).then((url) => {
           setDownloadURL(url);
           console.log("File available at", url);
+
+          
         });
       }
     );

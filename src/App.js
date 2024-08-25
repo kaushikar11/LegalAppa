@@ -6,8 +6,9 @@ import FileUpload from './components/FileUpload';
 function App() {
   return (
     <div className="App">
-      <TemplatesList />
+      
       <FileUpload />
+      <TemplatesList />
     </div>
   );
 }
