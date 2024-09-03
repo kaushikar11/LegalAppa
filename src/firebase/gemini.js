@@ -1,4 +1,5 @@
 
-const gemini="AIzaSyAwSCH8UN8acpQl1XNJ6rsNGnBCS55a4b4";
-const gemini2 = "AIzaSyAaUjggl6rXt_0X9t5diPxFzd8ARsc2VCA";
+const gemini=process.env.REACT_APP_GEMINI;
+const gemini2 = process.env.REACT_APP_GEMINI2;
+console.log(gemini);
 export {gemini,gemini2};

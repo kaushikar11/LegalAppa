@@ -98,10 +98,10 @@ const Chatbot = () => {
       const chat = await model.startChat({ history: history });
       
       const requestData = { text: prompt };
-      
+  
       console.log("Request Data:", requestData); // Add this line to debug
     
-      const result = await chat.sendMessage(requestData); // No need to use `toString()`
+      const result = await chat.sendMessage(requestData.toString()); // No need to use `toString()`
       const response = await result.response; // Await the response correctly
       const text = await response.text(); // Ensure this is correct
     
