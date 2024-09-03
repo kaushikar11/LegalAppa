@@ -72,11 +72,6 @@ const Home = () => {
             <TestimonialAuthor>- Jane Doe, Legal Counsel at Tech Corp</TestimonialAuthor>
           </TestimonialCard>
         </TestimonialSection>
-
-        <CTASection>
-          <CTATitle>Ready to Transform Your Legal Drafting?</CTATitle>
-          <CTAButton>Start Your Free Trial</CTAButton>
-        </CTASection>
       </HomeContainer>
     </>
   );

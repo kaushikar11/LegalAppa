@@ -5,6 +5,8 @@ import { gemini } from '../firebase/gemini';
 import mammoth from 'mammoth';
 import * as pdfjs from 'pdfjs-dist';
 import styled, { keyframes } from 'styled-components';
+import axios from 'axios';
+import { Editor } from '@tinymce/tinymce-react';
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
@@ -13,6 +15,7 @@ const TemplatesList = () => {
   const [responseText, setResponseText] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [templateDetails, setTemplateDetails] = useState('');
+  const [isConverting, setIsConverting] = useState(false);
   
   const genAI = new GoogleGenerativeAI(gemini);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -85,23 +88,42 @@ const TemplatesList = () => {
     if (!selectedTemplate) return;
 
     const prompt = `
-      Convert the following text extracted from a document to LaTeX format, ensuring proper centering and formatting:
+      Additional details: ${templateDetails} 
+      
+      ensuring proper centering and formatting:
       
       Extracted text: ${selectedTemplate}
       
-      Additional details: ${templateDetails}
-      
-      Please provide the output in LaTeX format & no extra text.
+      Please provide the output in LaTeX format & no extra text. Please don't hallucinate and make sure the latex syntax is correct.
     `;
 
+    const handleEditorChange = (content) => {
+      setSelectedTemplate(content);
+  };
+
     try {
+      setIsConverting(true);
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      const text = response.text();
-      setResponseText(text);
+      const latexText = response.text();
+      setResponseText(latexText);
+
+      // Send LaTeX to server for conversion
+      const serverResponse = await axios.post('http://localhost:3001/convert', { latex: latexText }, { responseType: 'blob' });
+      
+      // Create a download link for the converted file
+      const url = window.URL.createObjectURL(new Blob([serverResponse.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'converted_document.docx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (error) {
-      console.error("Error generating LaTeX content:", error);
-      setResponseText("An error occurred while generating the LaTeX content.");
+      console.error("Error generating or converting content:", error);
+      setResponseText("An error occurred while processing the document.");
+    } finally {
+      setIsConverting(false);
     }
   };
 
@@ -120,29 +142,49 @@ const TemplatesList = () => {
       </Section>
 
       {selectedTemplate && (
-        <Section>
-          <Title>Template Details</Title>
-          <Form onSubmit={handleDetailsSubmit}>
-            <TextArea
-              value={templateDetails}
-              onChange={(e) => setTemplateDetails(e.target.value)}
-              placeholder="Enter additional details for template manipulation"
-              rows={5}
-            />
-            <Button type="submit">Generate LaTeX</Button>
-          </Form>
-        </Section>
-      )}
+  <Section>
+  <Title>Edit Document</Title>
+  <div
+      contentEditable={true}
+      suppressContentEditableWarning={true}
+      style={{
+        padding: '1rem',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        backgroundColor: '#f8f8f8',
+        marginBottom: '1rem',
+        whiteSpace: 'pre-wrap',
+      }}
+      dangerouslySetInnerHTML={{ __html: selectedTemplate.replace(/\n/g, '<br/>') }}
+    />
+    <Form onSubmit={handleDetailsSubmit}>
+      <TextArea
+        value={templateDetails}
+        onChange={(e) => setTemplateDetails(e.target.value)}
+        placeholder="Enter additional details for template manipulation"
+        rows={5}
+      />
+      <Button type="submit">Generate Document</Button>
+    </Form>
+  </Section>
+)}
 
-      <Section>
-        <Title>Generated LaTeX</Title>
+
+<Section>
         <LaTeXOutput>{responseText}</LaTeXOutput>
+        {isConverting && <ConversionStatus>Converting to DOCX...</ConversionStatus>}
       </Section>
     </Container>
   );
 };
 
 export default TemplatesList;
+
+const ConversionStatus = styled.div`
+  margin-top: 1rem;
+  color: #4a90e2;
+  font-weight: bold;
+`;
 
 // Styled Components
 const slideIn = keyframes`
@@ -164,8 +206,6 @@ const Container = styled.div`
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 4rem 0;
-  background: linear-gradient(135deg, #e6e6e6 50%, #f8f8f8 50%);
-  clip-path: polygon(0 0, 100% 15%, 100% 100%, 0% 100%);
   
 `;
 

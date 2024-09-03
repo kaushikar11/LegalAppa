@@ -4,8 +4,11 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
+import Footer from './components/Footer';
 import TemplatesList from './components/TemplateList';
 import FileUpload from './components/FileUpload';
+import Chatbot from './components/Chatbot'; // Adjust the path as per your project structure
+
 
 function App() {
   return (
@@ -17,6 +20,8 @@ function App() {
           <Route path="/upload" element={<FileUpload />} />
           <Route path="/templates" element={<TemplatesList />} />
         </Routes>
+        <Chatbot />
+        <Footer />
       </div>
     </Router>
   );

@@ -14,7 +14,7 @@ const Navbar = () => {
         </LogoLink>
         <NavLinks>
           <NavLink to="/">Home</NavLink>
-          <NavLink to="/upload">Samples</NavLink>
+          <NavLink to="/upload">Upload</NavLink>
           <NavLink to="/templates">Generate</NavLink>
         </NavLinks>
       </NavContainer>
