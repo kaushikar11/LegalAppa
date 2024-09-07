@@ -5,13 +5,13 @@ import { getStorage } from 'firebase/storage';
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAlBXsU8bHHU4cXCOgzL21VWdqdupUIR0I",
-    authDomain: "legalappa-248f2.firebaseapp.com",
-    projectId: "legalappa-248f2",
-    storageBucket: "legalappa-248f2.appspot.com",
-    messagingSenderId: "84485672725",
-    appId: "1:84485672725:web:42ac5f6178d1e41276a31c",
-    measurementId: "G-NLG7RBKP2F"
+    apiKey: process.env.REACT_APP_apiKey,
+    authDomain: process.env.REACT_APP_authDomain,
+    projectId: process.env.REACT_APP_projectId,
+    storageBucket: process.env.REACT_APP_storageBucket,
+    messagingSenderId: process.env.REACT_APP_messagingSenderId,
+    appId: process.env.REACT_APP_appId,
+    measurementId: process.env.REACT_APP_measurementId
   };
   
 

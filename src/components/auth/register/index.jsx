@@ -51,7 +51,7 @@ const Register = () => {
             setIsRegistering(true);
             try {
                 await doCreateUserWithEmailAndPassword(email, password);
-                navigate('/home'); // Redirect to home after successful registration
+                navigate('/upload'); // Redirect to home after successful registration
             } catch (error) {
                 if (error.code === 'auth/email-already-in-use') {
                     setErrorMessage('Email is already in use');
@@ -65,7 +65,7 @@ const Register = () => {
 
     return (
         <>
-            {userLoggedIn && <Navigate to="/home" replace={true} />}
+            {userLoggedIn && <Navigate to="/upload" replace={true} />}
 
             <main className="w-full h-screen flex self-center place-content-center place-items-center mt-16 mb-16 bg-gray-900">
                 <div className="w-96 text-gray-300 space-y-5 p-4 shadow-xl border rounded-xl border-gray-700 bg-gray-800">
