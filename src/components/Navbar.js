@@ -1,22 +1,40 @@
-// src/components/Navbar.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import logo from '../logo.svg';
+import { useAuth } from '../contexts/authContext';
+import { doSignOut } from '../firebase/auth';
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Hide the navbar links on the login and register pages
+  const hideLinks = location.pathname === '/home' || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register';
+
   return (
     <Nav>
       <NavContainer>
         <LogoLink to="/">
-        <Logo src={`${process.env.PUBLIC_URL}/logo512.png`} alt="Logo" />
-          
+          <Logo src={`${process.env.PUBLIC_URL}/logo512.png`} alt="Logo" />
         </LogoLink>
-        <NavLinks>
-          <NavLink to="/">Home</NavLink>
-          <NavLink to="/upload">Upload</NavLink>
-          <NavLink to="/templates">Generate</NavLink>
-        </NavLinks>
+        {!hideLinks && (
+          <NavLinks>
+            <NavLink to="/">Home</NavLink>
+            <NavLink to="/upload">Upload</NavLink>
+            <NavLink to="/templates">Generate</NavLink>
+              <LogoutButton
+                onClick={() => {
+                  doSignOut().then(() => {
+                    navigate('/login');
+                  });
+                }}
+              >
+                Logout
+              </LogoutButton>
+            
+          </NavLinks>
+        )}
       </NavContainer>
     </Nav>
   );
@@ -50,11 +68,6 @@ const Logo = styled.img`
   margin-right: 10px;
 `;
 
-const LogoText = styled.span`
-  font-size: 1.5rem;
-  font-weight: bold;
-`;
-
 const NavLinks = styled.div`
   display: flex;
   gap: 1rem;
@@ -70,5 +83,19 @@ const NavLink = styled(Link)`
 
   &:hover {
     background-color: #f0f0f0;
+  }
+`;
+
+const LogoutButton = styled.button`
+  background-color: #007bff;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #0056b3;
   }
 `;

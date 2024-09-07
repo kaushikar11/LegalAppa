@@ -1,5 +1,6 @@
 import React from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const GlobalStyle = createGlobalStyle`
   @keyframes fadeIn {
@@ -13,6 +14,12 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const Home = () => {
+
+  const navigate = useNavigate();
+
+    const gotoLogin = () => {
+        navigate('/login');
+    };
   return (
     <>
       <GlobalStyle />
@@ -20,7 +27,7 @@ const Home = () => {
         <HeroSection>
           <Title>Legal Appa</Title>
           <Subtitle>Stop spending hours on one document—draft hundreds in just 10 minutes!</Subtitle>
-          <CTAButton>Get Started Free</CTAButton>
+          <CTAButton onClick={gotoLogin}>Get Started Free</CTAButton>
         </HeroSection>
 
         <FeaturesSection>

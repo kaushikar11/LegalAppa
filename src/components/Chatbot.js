@@ -156,7 +156,7 @@ const Chatbot = () => {
     <div>
       {/* Button to Open the Chatbot */}
       <button onClick={toggleChatbot} className="open-chatbot-button flex items-center p-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg shadow-lg transition-all duration-300 ease-in-out">
-      <h1 className="text-2xl font-bold mr-3">ASK</h1>
+      <h1 className="text-x font-bold mr-3">ASK</h1>
 
   <img src="legaldad.png" alt="LegalAppa icon" className="w-big h-big rounded-full border-2 border-white" />
 </button>

@@ -581,7 +581,7 @@ video {
   height: 4.5rem;
 }
 .h-big {
-  height: 8rem;
+  height: 6.5rem;
 }
 .w-8 {
   width: 2rem;
@@ -603,7 +603,7 @@ video {
   width: 4.5rem;
 }
 .w-big {
-  width: 8rem;
+  width: 6.5rem;
 }
 
 .w-full {
@@ -672,6 +672,10 @@ video {
 
 .text-lg {
   font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+.text-x {
+  font-size: 3rem;
   line-height: 1.75rem;
 }
 .text-2xl {
