@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getStorage, ref, listAll, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, listAll, getDownloadURL, deleteObject } from "firebase/storage";
 import { gemini } from '../firebase/gemini';
 import mammoth from 'mammoth';
 import * as pdfjs from 'pdfjs-dist';
@@ -93,12 +93,14 @@ const TemplatesList = () => {
   const handleDelete = async (template) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this template?');
     if (!confirmDelete) return;
-
+  
     try {
       const storage = getStorage();
       const templateRef = ref(storage, `uploads/${currentUser.email}/${template.id}`);
-      await templateRef.delete();
       
+      // Delete the object using deleteObject
+      await deleteObject(templateRef);
+  
       // Remove from state
       setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== template.id));
     } catch (error) {
