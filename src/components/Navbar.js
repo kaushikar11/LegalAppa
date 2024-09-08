@@ -26,9 +26,20 @@ const Navbar = () => {
           <LogoTitle>LegalAppa</LogoTitle>
         </LogoLink>
         {currentUser && (
+          <>
           <UserName>
             {currentUser.displayName ? currentUser.displayName : currentUser.email}
           </UserName>
+          <LogoutButton
+          onClick={() => {
+            doSignOut().then(() => {
+              navigate('/home');
+            });
+          }}
+        >
+          Logout
+        </LogoutButton>
+        </>
         )}
         {!hideLinks && (
           <>
