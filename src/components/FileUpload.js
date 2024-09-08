@@ -1,31 +1,43 @@
 import React, { useState } from 'react';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import styled, { keyframes } from 'styled-components';
+import { useAuth } from '../contexts/authContext';
+import { useNavigate } from 'react-router-dom';
 
 const FileUpload = () => {
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [downloadURL, setDownloadURL] = useState('');
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
+  const handleModifyDocument = () => {
+    navigate('/templates', { state: { fileUrl: downloadURL } });
+  };
+
   const handleUpload = () => {
-    if (!file) return;
-
+    if (!file) {
+      console.error("No file selected");
+      return;
+    }
     const storage = getStorage();
-    const storageRef = ref(storage, `uploads/${file.name}`);
+    const storageRef = ref(storage, `uploads/${currentUser.email}/${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on('state_changed', 
+  
+    uploadTask.on(
+      "state_changed",
       (snapshot) => {
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setUploadProgress(progress);
-      }, 
+        console.log(`Upload is ${progress}% done`);
+      },
       (error) => {
         console.error("Upload failed", error);
-      }, 
+      },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((url) => {
           setDownloadURL(url);
@@ -34,22 +46,30 @@ const FileUpload = () => {
       }
     );
   };
+  
 
   return (
-    <Container>
-      <Title>Upload a File</Title>
-      <UploadBox>
-        <FileInput type="file" onChange={handleFileChange} />
-        <UploadButton onClick={handleUpload}>Upload</UploadButton>
-      </UploadBox>
-      <ProgressBar progress={uploadProgress} />
-      <ProgressText>Upload Progress: {uploadProgress.toFixed(2)}%</ProgressText>
-      {downloadURL && (
-        <DownloadLink>
-          File available at: <a href={downloadURL} target="_blank" rel="noopener noreferrer">Download</a>
-        </DownloadLink>
-      )}
-    </Container>
+    <>
+      <UserInfo>
+        You are logged in as {currentUser.displayName ? currentUser.displayName : currentUser.email}
+      </UserInfo>
+      <Container>
+        <Title>Upload a File</Title>
+        <SubTitle>Only DOCx format is supported at the moment!</SubTitle>
+        <UploadBox>
+          <FileInput type="file" onChange={handleFileChange} />
+          <UploadButton onClick={handleUpload}>Upload</UploadButton>
+        </UploadBox>
+        <ProgressBar progress={uploadProgress} />
+        <ProgressText>Upload Progress: {uploadProgress.toFixed(2)}%</ProgressText>
+        {downloadURL && (
+          <DownloadLink>
+            File available at: <a href={downloadURL} target="_blank" rel="noopener noreferrer">Download</a> <br></br>
+            <ModifyButton onClick={handleModifyDocument}>Modify Document</ModifyButton>
+          </DownloadLink>
+        )}
+      </Container>
+    </>
   );
 };
 
@@ -65,6 +85,12 @@ const slideIn = keyframes`
     transform: translateY(0);
     opacity: 1;
   }
+`;
+
+const UserInfo = styled.div`
+  font-size: 1.25rem;
+  color: white;
+  margin: 1rem 0;
 `;
 
 const Container = styled.div`
@@ -85,6 +111,14 @@ const Title = styled.h1`
   font-family: 'Arial', sans-serif;
 `;
 
+const SubTitle = styled.h1`
+  color: grey;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-family: 'Arial', sans-serif;
+`;
+
 const UploadBox = styled.div`
   display: flex;
   justify-content: space-between;
@@ -95,6 +129,7 @@ const UploadBox = styled.div`
 
 const FileInput = styled.input`
   flex: 1;
+  color: black;
   padding: 0.5rem;
   border: 2px solid #ccc;
   border-radius: 8px;
@@ -145,6 +180,7 @@ const ProgressText = styled.p`
 const DownloadLink = styled.p`
   margin-top: 1rem;
   text-align: center;
+  color: #333;
   
   a {
     color: #333;
@@ -154,5 +190,22 @@ const DownloadLink = styled.p`
     &:hover {
       text-decoration: underline;
     }
+  }
+`;
+
+const ModifyButton = styled.button`
+  display: block;
+  margin: 1rem auto;
+  padding: 0.6rem 1.2rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+
+  &:hover {
+    background-color: #0056b3;
   }
 `;

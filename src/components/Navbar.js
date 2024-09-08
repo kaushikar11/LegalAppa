@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import logo from '../logo.svg';
 import { useAuth } from '../contexts/authContext';
 import { doSignOut } from '../firebase/auth';
 
@@ -9,6 +8,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  const { currentUser } = useAuth();
   // Hide the navbar links on the login and register pages
   const hideLinks = location.pathname === '/home' || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register';
 
@@ -23,16 +23,18 @@ const Navbar = () => {
             <NavLink to="/">Home</NavLink>
             <NavLink to="/upload">Upload</NavLink>
             <NavLink to="/templates">Generate</NavLink>
-              <LogoutButton
-                onClick={() => {
-                  doSignOut().then(() => {
-                    navigate('/login');
-                  });
-                }}
-              >
-                Logout
-              </LogoutButton>
-            
+            <UserName>
+              {currentUser.displayName ? currentUser.displayName : currentUser.email}
+            </UserName>
+            <LogoutButton
+              onClick={() => {
+                doSignOut().then(() => {
+                  navigate('/home');
+                });
+              }}
+            >
+              Logout
+            </LogoutButton>
           </NavLinks>
         )}
       </NavContainer>
@@ -71,6 +73,7 @@ const Logo = styled.img`
 const NavLinks = styled.div`
   display: flex;
   gap: 1rem;
+  align-items: center;
 `;
 
 const NavLink = styled(Link)`
@@ -84,6 +87,12 @@ const NavLink = styled(Link)`
   &:hover {
     background-color: #f0f0f0;
   }
+`;
+
+const UserName = styled.div`
+  color: #333; /* Dark color for better readability */
+  font-weight: 500;
+  margin-right: 1rem; /* Spacing between user name and logout button */
 `;
 
 const LogoutButton = styled.button`

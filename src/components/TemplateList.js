@@ -7,6 +7,7 @@ import * as pdfjs from 'pdfjs-dist';
 import styled, { keyframes } from 'styled-components';
 import axios from 'axios';
 import { Editor } from '@tinymce/tinymce-react';
+import { useAuth } from '../contexts/authContext';
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
@@ -16,6 +17,7 @@ const TemplatesList = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [templateDetails, setTemplateDetails] = useState('');
   const [isConverting, setIsConverting] = useState(false);
+  const { currentUser } = useAuth(); 
   
   const genAI = new GoogleGenerativeAI(gemini);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -23,7 +25,7 @@ const TemplatesList = () => {
   useEffect(() => {
     const fetchTemplates = async () => {
       const storage = getStorage();
-      const listRef = ref(storage, 'uploads/');
+      const listRef = ref(storage, `uploads/${currentUser.email}`);
       
       try {
         const res = await listAll(listRef);
@@ -66,9 +68,12 @@ const TemplatesList = () => {
   const handleTemplateClick = async (template) => {
     try {
       const response = await fetch(template.url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch template: ${response.statusText}`);
+      }
       const arrayBuffer = await response.arrayBuffer();
       let text;
-
+  
       if (template.name.endsWith('.docx')) {
         text = await extractTextFromDOCX(arrayBuffer);
       } else if (template.name.endsWith('.pdf')) {
@@ -76,12 +81,13 @@ const TemplatesList = () => {
       } else {
         throw new Error('Unsupported file format');
       }
-
+  
       setSelectedTemplate(text);
     } catch (error) {
-      console.error("Error extracting text from template:", error);
+      console.error("Error extracting text from template:", error.message);
     }
   };
+  
 
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
@@ -109,7 +115,7 @@ const TemplatesList = () => {
       setResponseText(latexText);
 
       // Send LaTeX to server for conversion
-      const serverResponse = await axios.post('http://localhost:3001/convert', { latex: latexText }, { responseType: 'blob' });
+      const serverResponse = await axios.post('https://latexendpoint.onrender.com/convert', { latex: latexText }, { responseType: 'blob' });
       
       // Create a download link for the converted file
       const url = window.URL.createObjectURL(new Blob([serverResponse.data]));
@@ -128,9 +134,13 @@ const TemplatesList = () => {
   };
 
   return (
+    <>
+    <UserInfo>
+        You are logged in as {currentUser.displayName ? currentUser.displayName : currentUser.email}
+      </UserInfo>
     <Container>
       <Section>
-        <Title>Available Templates</Title>
+        <Title>Your Templates</Title>
         <TemplateList>
           {templates.map(template => (
             <TemplateItem key={template.id}>
@@ -175,6 +185,7 @@ const TemplatesList = () => {
         {isConverting && <ConversionStatus>Converting to DOCX...</ConversionStatus>}
       </Section>
     </Container>
+    </>
   );
 };
 
@@ -184,6 +195,12 @@ const ConversionStatus = styled.div`
   margin-top: 1rem;
   color: #4a90e2;
   font-weight: bold;
+`;
+
+const UserInfo = styled.div`
+  font-size: 1.25rem;
+  color: white;
+  margin: 1rem 0;
 `;
 
 // Styled Components
