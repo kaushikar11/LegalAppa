@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { getStorage, ref, listAll, getDownloadURL } from "firebase/storage";
-import { db } from '../firebase/firebase';
 import { gemini } from '../firebase/gemini';
 import mammoth from 'mammoth';
 import * as pdfjs from 'pdfjs-dist';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import axios from 'axios';
-import { Editor } from '@tinymce/tinymce-react';
+import cors from 'cors';
 import { useAuth } from '../contexts/authContext';
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -47,7 +46,7 @@ const TemplatesList = () => {
     };
 
     fetchTemplates();
-  }, []);
+  }, [currentUser.email]);
 
   const extractTextFromDOCX = async (arrayBuffer) => {
     const result = await mammoth.extractRawText({ arrayBuffer });
@@ -67,9 +66,11 @@ const TemplatesList = () => {
 
   const handleTemplateClick = async (template) => {
     try {
-      const response = await fetch(template.url);
+      const response = await fetch(template.url, {
+        mode: 'cors', // Ensure the request uses CORS mode
+      });
       if (!response.ok) {
-        throw new Error(`Failed to fetch template: ${response.statusText}`);
+        throw new Error(`Failed to fetch template. Status: ${response.status} - ${response.statusText}`);
       }
       const arrayBuffer = await response.arrayBuffer();
       let text;
@@ -85,9 +86,25 @@ const TemplatesList = () => {
       setSelectedTemplate(text);
     } catch (error) {
       console.error("Error extracting text from template:", error.message);
+      alert(`Error: ${error.message}`);
     }
   };
   
+  const handleDelete = async (template) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this template?');
+    if (!confirmDelete) return;
+
+    try {
+      const storage = getStorage();
+      const templateRef = ref(storage, `uploads/${currentUser.email}/${template.id}`);
+      await templateRef.delete();
+      
+      // Remove from state
+      setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== template.id));
+    } catch (error) {
+      console.error("Error deleting template:", error);
+    }
+  };
 
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
@@ -102,10 +119,6 @@ const TemplatesList = () => {
       
       Please provide the output in LaTeX format & no extra text. Please don't hallucinate and make sure the latex syntax is correct.
     `;
-
-    const handleEditorChange = (content) => {
-      setSelectedTemplate(content);
-  };
 
     try {
       setIsConverting(true);
@@ -135,36 +148,31 @@ const TemplatesList = () => {
 
   return (
     <>
-    <UserInfo>
+      <UserInfo>
         You are logged in as {currentUser.displayName ? currentUser.displayName : currentUser.email}
       </UserInfo>
-    <Container>
-      <Section>
-        <Title>Your Templates</Title>
-        <TemplateList>
-          {templates.map(template => (
-            <TemplateItem key={template.id}>
-              <TemplateName>{template.name}</TemplateName>
-              <Button onClick={() => handleTemplateClick(template)}>Extract and Edit</Button>
-            </TemplateItem>
-          ))}
-        </TemplateList>
-      </Section>
+      <Container>
+        <Section>
+          <Title>Your Templates</Title>
+          <TemplateList>
+            {templates.map(template => (
+              <TemplateItem key={template.id}>
+                <TemplateName>{template.name}</TemplateName>
+                <ButtonContainer>
+                  <Button onClick={() => handleTemplateClick(template)}>Extract and Edit</Button>
+                  <DeleteButton onClick={() => handleDelete(template)}>Delete</DeleteButton>
+                </ButtonContainer>
+              </TemplateItem>
+            ))}
+          </TemplateList>
+        </Section>
 
-      {selectedTemplate && (
+        {selectedTemplate && (
   <Section>
-  <Title>Edit Document</Title>
-  <div
+    <Title>Edit Document</Title>
+    <EditableDocument
       contentEditable={true}
       suppressContentEditableWarning={true}
-      style={{
-        padding: '1rem',
-        border: '1px solid #ccc',
-        borderRadius: '4px',
-        backgroundColor: '#f8f8f8',
-        marginBottom: '1rem',
-        whiteSpace: 'pre-wrap',
-      }}
       dangerouslySetInnerHTML={{ __html: selectedTemplate.replace(/\n/g, '<br/>') }}
     />
     <Form onSubmit={handleDetailsSubmit}>
@@ -180,16 +188,17 @@ const TemplatesList = () => {
 )}
 
 
-<Section>
-        <LaTeXOutput>{responseText}</LaTeXOutput>
-        {isConverting && <ConversionStatus>Converting to DOCX...</ConversionStatus>}
-      </Section>
-    </Container>
+        <Section>
+          <LaTeXOutput>{responseText}</LaTeXOutput>
+          {isConverting && <ConversionStatus>Converting to DOCX...</ConversionStatus>}
+        </Section>
+      </Container>
     </>
   );
 };
 
 export default TemplatesList;
+// Styled Components
 
 const ConversionStatus = styled.div`
   margin-top: 1rem;
@@ -203,18 +212,6 @@ const UserInfo = styled.div`
   margin: 1rem 0;
 `;
 
-// Styled Components
-const slideIn = keyframes`
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-`;
-
 const Container = styled.div`
   max-width: 800px;
   margin: 2rem auto;
@@ -222,13 +219,10 @@ const Container = styled.div`
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 4rem 0;
-  
 `;
 
 const Section = styled.div`
   margin-bottom: 2rem;
-  
 `;
 
 const Title = styled.h1`
@@ -244,14 +238,15 @@ const TemplateList = styled.ul`
 
 const TemplateItem = styled.li`
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 1rem;
   border-bottom: 1px solid #eee;
+  justify-content: space-between; /* Adjust as needed */
+`;
 
-  &:last-child {
-    border-bottom: none;
-  }
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 1rem;
 `;
 
 const TemplateName = styled.h2`
@@ -264,13 +259,22 @@ const Button = styled.button`
   background-color: #4a90e2;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
   border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s;
 
   &:hover {
     background-color: #357abd;
+  }
+`;
+
+const DeleteButton = styled(Button)`
+  background-color: #e94e77;
+
+  &:hover {
+    background-color: #d63d5c;
   }
 `;
 
@@ -280,20 +284,33 @@ const Form = styled.form`
 `;
 
 const TextArea = styled.textarea`
-  width: 100%;
-  padding: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin-bottom: 1rem;
+  font-size: 1rem;
   resize: vertical;
+  color: black; /* Ensure text color is black */
 `;
 
 const LaTeXOutput = styled.pre`
-  background-color: #f5f5f5;
+  background-color: #f8f8f8;
   padding: 1rem;
+  border: 1px solid #ddd;
   border-radius: 4px;
   white-space: pre-wrap;
-  word-wrap: break-word;
-  font-family: monospace;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  color: #333;
 `;
+
+const EditableDocument = styled.div`
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+  color: black; /* Ensure text color is black */
+  font-size: 1rem;
+`;
+

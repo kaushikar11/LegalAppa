@@ -15,7 +15,7 @@ const Footer = () => {
         </FooterNav>
         <SocialIcons>
           <SocialIcon href="#"><i className="fab fa-twitter"></i></SocialIcon>
-          <SocialIcon href="#"><i className="fab fa-linkedin"></i></SocialIcon>
+          <SocialIcon href="https://www.linkedin.com/company/legalappa/"><i className="fab fa-linkedin"></i></SocialIcon>
           <SocialIcon href="#"><i className="fab fa-facebook"></i></SocialIcon>
         </SocialIcons>
         <LegalText>

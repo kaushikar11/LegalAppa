@@ -3,7 +3,7 @@
       "origin": ["http://localhost:3000","https://legalappa.vercel.app","https://legalappa.one"], 
       "method": ["GET", "POST", "PUT", "DELETE"],
       "maxAgeSeconds": 3600,
-      "responseHeader": ["Content-Type"]
+      "responseHeader": ["Content-Type","Origin","Authorization"]
     }
   ]
   
