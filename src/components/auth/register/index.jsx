@@ -67,15 +67,15 @@ const Register = () => {
         <>
             {userLoggedIn && <Navigate to="/upload" replace={true} />}
 
-            <main className="w-full h-screen flex self-center place-content-center place-items-center mt-16 mb-16 bg-gray-900">
-                <div className="w-96 text-gray-300 space-y-5 p-4 shadow-xl border rounded-xl border-gray-700 bg-gray-800">
+            <main className="w-full h-screen flex self-center place-content-center place-items-center bg-gray-100">
+                <div className="w-96 text-gray-800 space-y-5 p-4 shadow-xl border rounded-xl border-gray-300 bg-white">
                     <div className="flex justify-center mb-4">
                         <img src={legaldad} alt="Logo" className='h-20' />  
                     </div>
                    
                     <div className="text-center mb-6">
                         <div className="mt-2">
-                            <h3 className="text-gray-100 text-xl font-semibold sm:text-2xl">Create a New Account</h3>
+                            <h3 className="text-gray-900 text-xl font-semibold sm:text-2xl">Create a New Account</h3>
                         </div>
                     </div>
                     <form
@@ -83,7 +83,7 @@ const Register = () => {
                         className="space-y-4"
                     >
                         <div>
-                            <label className="text-sm text-gray-300 font-bold">
+                            <label className="text-sm text-gray-800 font-bold">
                                 Email
                             </label>
                             <input
@@ -91,12 +91,12 @@ const Register = () => {
                                 autoComplete='email'
                                 required
                                 value={email} onChange={(e) => { setEmail(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-200 bg-gray-700 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                className="w-full mt-2 px-3 py-2 text-gray-800 bg-gray-200 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
 
                         <div>
-                            <label className="text-sm text-gray-300 font-bold">
+                            <label className="text-sm text-gray-800 font-bold">
                                 Password
                             </label>
                             <input
@@ -105,12 +105,12 @@ const Register = () => {
                                 autoComplete='new-password'
                                 required
                                 value={password} onChange={(e) => { setPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-200 bg-gray-700 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                className="w-full mt-2 px-3 py-2 text-gray-800 bg-gray-200 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
 
                         <div>
-                            <label className="text-sm text-gray-300 font-bold">
+                            <label className="text-sm text-gray-800 font-bold">
                                 Confirm Password
                             </label>
                             <input
@@ -119,7 +119,7 @@ const Register = () => {
                                 autoComplete='off'
                                 required
                                 value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-200 bg-gray-700 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                className="w-full mt-2 px-3 py-2 text-gray-800 bg-gray-200 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
 
@@ -130,14 +130,14 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={isRegistering}
-                            className={`w-full px-4 py-2 text-white font-medium rounded-lg ${isRegistering ? 'bg-gray-600 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-xl transition duration-300'}`}
+                            className={`w-full px-4 py-2 font-medium rounded-lg ${isRegistering ? 'bg-gray-400 cursor-not-allowed text-black' : 'bg-indigo-600 text-black hover:text-white hover:bg-indigo-700 hover:shadow-xl transition duration-300'}`}
                         >
                             {isRegistering ? 'Signing Up...' : 'Sign Up'}
                         </button>
                         {!userLoggedIn && (
-                            <div className="text-sm text-center text-gray-400">
+                            <div className="text-sm text-center text-gray-600">
                                 Already have an account? {' '}
-                                <Link to={'/login'} className="text-indigo-400 hover:underline font-bold">Continue</Link>
+                                <Link to={'/login'} className="text-indigo-600 hover:underline font-bold">Continue</Link>
                             </div>
                         )}
                     </form>

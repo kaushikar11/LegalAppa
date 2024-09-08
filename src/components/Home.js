@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/authContext';
 
 const GlobalStyle = createGlobalStyle`
   @keyframes fadeIn {
@@ -11,11 +12,19 @@ const GlobalStyle = createGlobalStyle`
       opacity: 1;
     }
   }
+
+  body {
+    background-color: #fff; /* Set the background color to white */
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif; /* Optional: Set a global font */
+  }
 `;
 
 const Home = () => {
 
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
     const gotoLogin = () => {
         navigate('/login');
@@ -25,9 +34,13 @@ const Home = () => {
       <GlobalStyle />
       <HomeContainer>
         <HeroSection>
-          <Title>Legal Appa</Title>
+          <Title>
+          {currentUser ? `Welcome back, ${currentUser.displayName || currentUser.email}` : 'Legal Appa'}
+          </Title>
           <Subtitle>Stop spending hours on one document—draft hundreds in just 10 minutes!</Subtitle>
-          <CTAButton onClick={gotoLogin}>Get Started Free</CTAButton>
+          <CTAButton onClick={gotoLogin}>
+            {currentUser ? 'Start Drafting' : 'Get Started Free'}
+          </CTAButton>
         </HeroSection>
 
         <FeaturesSection>

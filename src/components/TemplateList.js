@@ -3,7 +3,7 @@ import { getStorage, ref, listAll, getDownloadURL } from "firebase/storage";
 import { gemini } from '../firebase/gemini';
 import mammoth from 'mammoth';
 import * as pdfjs from 'pdfjs-dist';
-import styled from 'styled-components';
+import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import axios from 'axios';
 import cors from 'cors';
 import { useAuth } from '../contexts/authContext';
@@ -146,8 +146,27 @@ const TemplatesList = () => {
     }
   };
 
+  const GlobalStyle = createGlobalStyle`
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+body {
+  background-color: #fff; /* Set the background color to white */
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif; /* Optional: Set a global font */
+}
+`;
+
   return (
     <>
+    <GlobalStyle />
       <UserInfo>
         You are logged in as {currentUser.displayName ? currentUser.displayName : currentUser.email}
       </UserInfo>
@@ -208,7 +227,7 @@ const ConversionStatus = styled.div`
 
 const UserInfo = styled.div`
   font-size: 1.25rem;
-  color: white;
+  color: black;
   margin: 1rem 0;
 `;
 
