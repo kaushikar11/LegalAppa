@@ -30,15 +30,6 @@ const Navbar = () => {
           <UserName>
             {currentUser.displayName ? currentUser.displayName : currentUser.email}
           </UserName>
-          <LogoutButton
-          onClick={() => {
-            doSignOut().then(() => {
-              navigate('/home');
-            });
-          }}
-        >
-          Logout
-        </LogoutButton>
         </>
         )}
         {!hideLinks && (
@@ -52,7 +43,13 @@ const Navbar = () => {
               <NavLink to="/" onClick={toggleMenu}>Home</NavLink>
               <NavLink to="/upload" onClick={toggleMenu}>Upload</NavLink>
               <NavLink to="/templates" onClick={toggleMenu}>Generate</NavLink>
-              <LogoutButton
+              
+            </NavLinks>
+          </>
+        )}
+        {currentUser && (
+          <>
+        <LogoutButton
                 onClick={() => {
                   doSignOut().then(() => {
                     navigate('/home');
@@ -61,9 +58,8 @@ const Navbar = () => {
               >
                 Logout
               </LogoutButton>
-            </NavLinks>
-          </>
-        )}
+              </>
+              )}
       </NavContainer>
     </Nav>
   );

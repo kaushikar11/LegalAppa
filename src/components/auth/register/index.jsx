@@ -65,7 +65,7 @@ const Register = () => {
 
     return (
         <>
-            {userLoggedIn && <Navigate to="/upload" replace={true} />}
+            {userLoggedIn && <Navigate to="/" replace={true} />}
 
             <main className="w-full h-screen flex self-center place-content-center place-items-center bg-gray-100">
                 <div className="w-96 text-gray-800 space-y-5 p-4 shadow-xl border rounded-xl border-gray-300 bg-white">
@@ -137,7 +137,7 @@ const Register = () => {
                         {!userLoggedIn && (
                             <div className="text-sm text-center text-gray-600">
                                 Already have an account? {' '}
-                                <Link to={'/login'} className="text-indigo-600 hover:underline font-bold">Continue</Link>
+                                <Link to={'/uploadlogin'} className="text-indigo-600 hover:underline font-bold">Continue</Link>
                             </div>
                         )}
                     </form>
