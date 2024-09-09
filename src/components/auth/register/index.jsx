@@ -137,7 +137,7 @@ const Register = () => {
                         {!userLoggedIn && (
                             <div className="text-sm text-center text-gray-600">
                                 Already have an account? {' '}
-                                <Link to={'/uploadlogin'} className="text-indigo-600 hover:underline font-bold">Continue</Link>
+                                <Link to={'/login'} className="text-indigo-600 hover:underline font-bold">Continue</Link>
                             </div>
                         )}
                     </form>
