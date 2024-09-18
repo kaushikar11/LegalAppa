@@ -1,6 +1,6 @@
 [
     {
-      "origin": ["http://localhost:3000","https://legalappa.vercel.app","https://legalappa.one","https://legalappa.com"], 
+      "origin": ["http://localhost:3000","https://legalappa.vercel.app","https://legalappa.one","https://legalappa.com","https://www.legalappa.com"], 
       "method": ["GET", "POST", "PUT", "DELETE"],
       "maxAgeSeconds": 3600,
       "responseHeader": ["Content-Type","Origin","Authorization"]
