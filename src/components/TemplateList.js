@@ -130,7 +130,7 @@ const TemplatesList = () => {
       setResponseText(latexText);
 
       // Send LaTeX to server for conversion
-      const serverResponse = await axios.post('https://latexendpoint.onrender.com/convert', { latex: latexText }, { responseType: 'blob' });
+      const serverResponse = await axios.post('https://latextopdf-nkr5.onrender.com/convert', { latex: latexText }, { responseType: 'blob' });
       
       // Create a download link for the converted file
       const url = window.URL.createObjectURL(new Blob([serverResponse.data]));
