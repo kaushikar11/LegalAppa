@@ -136,7 +136,7 @@ const TemplatesList = () => {
       const url = window.URL.createObjectURL(new Blob([serverResponse.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'converted_document.docx');
+      link.setAttribute('download', 'legalappa_doc.docx');
       document.body.appendChild(link);
       link.click();
       link.remove();
