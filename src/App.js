@@ -10,6 +10,7 @@ import Chatbot from './components/Chatbot'; // Adjust the path as per your proje
 import Login from "./components/auth/login";
 import Register from "./components/auth/register";
 import { AuthProvider } from "./contexts/authContext";
+import { Analytics } from "@vercel/analytics/react"
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
           <Footer />
         </div>
       </Router>
+      <Analytics />
     </AuthProvider>
   );
 }
