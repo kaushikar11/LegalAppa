@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { doSignInWithEmailAndPassword, doSignInWithGoogle, doSignInWithFacebook, doSignInWithTwitter } from '../../../firebase/auth';
 import { useAuth } from '../../../contexts/authContext';
+import { useTheme } from '../../../contexts/themeContext';
+import styled from 'styled-components';
 import legaldad from '../../../assets/legaldad.png';
 
 const Login = () => {
     const { userLoggedIn } = useAuth();
+    const { theme } = useTheme();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -74,70 +77,69 @@ const Login = () => {
         <>
             {userLoggedIn && (<Navigate to={'/upload'} replace={true} />)}
 
-            <main className="w-full h-screen flex self-center place-content-center place-items-center bg-gray-100">
-                <div className="w-96 text-gray-700 space-y-5 p-4 shadow-xl border rounded-xl border-gray-300 bg-white">
-                    <div className="flex justify-center mb-4">
-                        <img src={legaldad} alt="Logo" className='h-20' />  
-                    </div>
+            <LoginContainer theme={theme}>
+                <LoginCard theme={theme}>
+                    <LogoContainer>
+                        <LogoImage src={legaldad} alt="Logo" />  
+                    </LogoContainer>
                    
-                    <div className="text-center mb-6"> 
-                        <div className="mt-2">
-                            <h3 className="text-gray-800 text-xl font-semibold sm:text-2xl">Welcome Back</h3>
-                        </div>
-                    </div>
-                    <form
-                        onSubmit={onSubmit}
-                        className="space-y-5"
-                    >
-                        <div>
-                            <label className="text-sm text-gray-600 font-bold">
-                                Email
-                            </label>
-                            <input
+                    <TitleContainer> 
+                        <Title theme={theme}>Welcome Back</Title>
+                    </TitleContainer>
+                    <LoginForm onSubmit={onSubmit}>
+                        <FormGroup>
+                            <Label theme={theme}>Email</Label>
+                            <Input
                                 type="email"
                                 autoComplete='email'
                                 required
-                                value={email} onChange={(e) => { setEmail(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-700 bg-gray-100 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                value={email} 
+                                onChange={(e) => { setEmail(e.target.value) }}
+                                theme={theme}
                             />
-                        </div>
+                        </FormGroup>
 
-
-                        <div>
-                            <label className="text-sm text-gray-600 font-bold">
-                                Password
-                            </label>
-                            <input
+                        <FormGroup>
+                            <Label theme={theme}>Password</Label>
+                            <Input
                                 type="password"
                                 autoComplete='current-password'
                                 required
-                                value={password} onChange={(e) => { setPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-700 bg-gray-100 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                value={password} 
+                                onChange={(e) => { setPassword(e.target.value) }}
+                                theme={theme}
                             />
-                        </div>
+                        </FormGroup>
 
                         {errorMessage && (
-                            <span className='text-red-500 font-bold'>{errorMessage}</span>
+                            <ErrorMessage>{errorMessage}</ErrorMessage>
                         )}
 
-<button
-    type="submit"
-    disabled={isSigningIn}
-    className={`w-full px-4 py-2 font-medium rounded-lg ${isSigningIn ? 'bg-gray-400 cursor-not-allowed text-black' : 'bg-indigo-600 text-black hover:text-white hover:bg-indigo-700 hover:shadow-xl transition duration-300'}`}
->
-    {isSigningIn ? 'Signing In...' : 'Sign In'}
-</button>
+                        <SubmitButton
+                            type="submit"
+                            disabled={isSigningIn}
+                            theme={theme}
+                            isSigningIn={isSigningIn}
+                        >
+                            {isSigningIn ? 'Signing In...' : 'Sign In'}
+                        </SubmitButton>
 
-                    </form>
-                    <p className="text-center text-sm text-gray-500">Don't have an account? <Link to={'/register'} className="hover:underline font-bold text-indigo-500">Sign up</Link></p>
-                    <div className='flex flex-row text-center w-full'>
-                        <div className='border-b-2 mb-2.5 mr-2 w-full border-gray-300'></div><div className='text-sm font-bold text-gray-500 w-fit'>OR</div><div className='border-b-2 mb-2.5 ml-2 w-full border-gray-300'></div>
-                    </div>
-                    <button
+                    </LoginForm>
+                    <SignUpLink theme={theme}>
+                        Don't have an account? <StyledLink to={'/register'} theme={theme}>Sign up</StyledLink>
+                    </SignUpLink>
+                    <Divider theme={theme}>
+                        <DividerLine theme={theme}></DividerLine>
+                        <DividerText theme={theme}>OR</DividerText>
+                        <DividerLine theme={theme}></DividerLine>
+                    </Divider>
+                    <GoogleButton
                         disabled={isSigningIn}
                         onClick={(e) => { onGoogleSignIn(e) }}
-                        className={`w-full flex items-center justify-center gap-x-3 py-2.5 border rounded-lg text-sm font-medium text-gray-700 ${isSigningIn ? 'cursor-not-allowed' : 'hover:bg-gray-100 transition duration-300 active:bg-gray-200'}`}>
-                        <svg className="w-5 h-5" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        theme={theme}
+                        isSigningIn={isSigningIn}
+                    >
+                        <GoogleIcon viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_17_40)">
                                 <path d="M47.532 24.5528C47.532 22.9214 47.3997 21.2811 47.1175 19.6761H24.48V28.9181H37.4434C36.9055 31.8988 35.177 34.5356 32.6461 36.2111V42.2078H40.3801C44.9217 38.0278 47.532 31.8547 47.532 24.5528Z" fill="#4285F4" />
                                 <path d="M24.48 48.0016C30.9529 48.0016 36.4116 45.8764 40.3888 42.2078L32.6549 36.2111C30.5031 37.675 27.7252 38.5039 24.4888 38.5039C18.2275 38.5039 12.9187 34.2798 11.0139 28.6006H3.03296V34.7825C7.10718 42.8868 15.4056 48.0016 24.48 48.0016Z" fill="#34A853" />
@@ -149,13 +151,227 @@ const Login = () => {
                                     <rect width="48" height="48" fill="white" />
                                 </clipPath>
                             </defs>
-                        </svg>
+                        </GoogleIcon>
                         Sign in with Google
-                    </button>
-                </div>
-            </main>
+                    </GoogleButton>
+                </LoginCard>
+            </LoginContainer>
         </>
     );
 };
 
 export default Login;
+
+// Styled Components
+const LoginContainer = styled.main`
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFF8E7'};
+  transition: background-color 0.3s ease;
+  padding-top: 80px;
+`;
+
+const LoginCard = styled.div`
+  width: 420px;
+  padding: 2.5rem;
+  background-color: ${props => props.theme === 'dark' ? '#1E293B' : '#FFFFFF'};
+  border: 1px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  border-radius: 16px;
+  box-shadow: ${props => props.theme === 'dark' 
+    ? '0 20px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)' 
+    : '0 20px 32px rgba(0, 0, 0, 0.08)'};
+  transition: all 0.3s ease;
+`;
+
+const LogoContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+`;
+
+const LogoImage = styled.img`
+  height: 80px;
+`;
+
+const TitleContainer = styled.div`
+  text-align: center;
+  margin-bottom: 1.5rem;
+`;
+
+const Title = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
+  margin: 0.5rem 0 0 0;
+  transition: color 0.3s ease;
+`;
+
+const LoginForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Label = styled.label`
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#4B5563'};
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.875rem 1rem;
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFFFFF'};
+  border: 2px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+
+  &:focus {
+    border-color: ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
+    background-color: ${props => props.theme === 'dark' ? '#1E293B' : '#FFFFFF'};
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 0 0 3px rgba(99, 102, 241, 0.1)' 
+      : '0 0 0 3px rgba(59, 130, 246, 0.1)'};
+  }
+
+  &::placeholder {
+    color: ${props => props.theme === 'dark' ? '#64748B' : '#9CA3AF'};
+  }
+`;
+
+const ErrorMessage = styled.span`
+  color: #EF4444;
+  font-weight: 700;
+  font-size: 0.875rem;
+`;
+
+const SubmitButton = styled.button`
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: ${props => props.isSigningIn ? 'not-allowed' : 'pointer'};
+  transition: all 0.3s ease;
+  background-color: ${props => props.isSigningIn 
+    ? (props.theme === 'dark' ? '#475569' : '#9CA3AF')
+    : (props.theme === 'dark' ? '#6366F1' : '#3B82F6')};
+  color: white;
+  font-size: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow: ${props => !props.isSigningIn 
+    ? (props.theme === 'dark' 
+      ? '0 4px 14px rgba(99, 102, 241, 0.4)' 
+      : '0 4px 14px rgba(59, 130, 246, 0.4)')
+    : 'none'};
+
+  &:hover:not(:disabled) {
+    background-color: ${props => props.theme === 'dark' ? '#4F46E5' : '#2563EB'};
+    transform: translateY(-2px);
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 6px 20px rgba(99, 102, 241, 0.5)' 
+      : '0 6px 20px rgba(59, 130, 246, 0.5)'};
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+`;
+
+const SignUpLink = styled.p`
+  text-align: center;
+  font-size: 0.875rem;
+  color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#6B7280'};
+  margin-top: 1rem;
+  transition: color 0.3s ease;
+`;
+
+const StyledLink = styled(Link)`
+  color: ${props => props.theme === 'dark' ? '#818CF8' : '#667EEA'};
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &:hover {
+    text-decoration: underline;
+    color: ${props => props.theme === 'dark' ? '#A78BFA' : '#818CF8'};
+  }
+`;
+
+const Divider = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  margin: 1rem 0;
+`;
+
+const DividerLine = styled.div`
+  flex: 1;
+  height: 2px;
+  background-color: ${props => props.theme === 'dark' ? '#334155' : '#D1D5DB'};
+  margin: 0 0.5rem;
+  transition: background-color 0.3s ease;
+`;
+
+const DividerText = styled.div`
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#6B7280'};
+  padding: 0 0.5rem;
+  transition: color 0.3s ease;
+`;
+
+const GoogleButton = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.625rem;
+  border: 1px solid ${props => props.theme === 'dark' ? '#334155' : '#D1D5DB'};
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: ${props => props.isSigningIn ? 'not-allowed' : 'pointer'};
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFFFFF'};
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    background-color: ${props => props.theme === 'dark' ? '#334155' : '#F3F4F6'};
+    border-color: ${props => props.theme === 'dark' ? '#475569' : '#D1D5DB'};
+  }
+
+  &:active:not(:disabled) {
+    background-color: ${props => props.theme === 'dark' ? '#475569' : '#E5E7EB'};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+`;
+
+const GoogleIcon = styled.svg`
+  width: 20px;
+  height: 20px;
+`;

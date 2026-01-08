@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/authContext';
+import { useTheme } from '../../../contexts/themeContext';
 import { doCreateUserWithEmailAndPassword } from '../../../firebase/auth';
+import styled from 'styled-components';
 import legaldad from '../../../assets/legaldad.png';
 
 const Register = () => {
     const navigate = useNavigate();
+    const { theme } = useTheme();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -65,86 +68,238 @@ const Register = () => {
 
     return (
         <>
-            {userLoggedIn && <Navigate to="/" replace={true} />}
+            {userLoggedIn && <Navigate to="/upload" replace={true} />}
 
-            <main className="w-full h-screen flex self-center place-content-center place-items-center bg-gray-100">
-                <div className="w-96 text-gray-800 space-y-5 p-4 shadow-xl border rounded-xl border-gray-300 bg-white">
-                    <div className="flex justify-center mb-4">
-                        <img src={legaldad} alt="Logo" className='h-20' />  
-                    </div>
+            <RegisterContainer theme={theme}>
+                <RegisterCard theme={theme}>
+                    <LogoContainer>
+                        <LogoImage src={legaldad} alt="Logo" />  
+                    </LogoContainer>
                    
-                    <div className="text-center mb-6">
-                        <div className="mt-2">
-                            <h3 className="text-gray-900 text-xl font-semibold sm:text-2xl">Create a New Account</h3>
-                        </div>
-                    </div>
-                    <form
-                        onSubmit={onSubmit}
-                        className="space-y-4"
-                    >
-                        <div>
-                            <label className="text-sm text-gray-800 font-bold">
-                                Email
-                            </label>
-                            <input
+                    <TitleContainer>
+                        <Title theme={theme}>Create a New Account</Title>
+                    </TitleContainer>
+                    <RegisterForm onSubmit={onSubmit}>
+                        <FormGroup>
+                            <Label theme={theme}>Email</Label>
+                            <Input
                                 type="email"
                                 autoComplete='email'
                                 required
-                                value={email} onChange={(e) => { setEmail(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-800 bg-gray-200 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                value={email} 
+                                onChange={(e) => { setEmail(e.target.value) }}
+                                theme={theme}
                             />
-                        </div>
+                        </FormGroup>
 
-                        <div>
-                            <label className="text-sm text-gray-800 font-bold">
-                                Password
-                            </label>
-                            <input
+                        <FormGroup>
+                            <Label theme={theme}>Password</Label>
+                            <Input
                                 disabled={isRegistering}
                                 type="password"
                                 autoComplete='new-password'
                                 required
-                                value={password} onChange={(e) => { setPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-800 bg-gray-200 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                value={password} 
+                                onChange={(e) => { setPassword(e.target.value) }}
+                                theme={theme}
                             />
-                        </div>
+                        </FormGroup>
 
-                        <div>
-                            <label className="text-sm text-gray-800 font-bold">
-                                Confirm Password
-                            </label>
-                            <input
+                        <FormGroup>
+                            <Label theme={theme}>Confirm Password</Label>
+                            <Input
                                 disabled={isRegistering}
                                 type="password"
                                 autoComplete='off'
                                 required
-                                value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-800 bg-gray-200 outline-none border focus:border-indigo-500 shadow-sm rounded-lg transition duration-300"
+                                value={confirmPassword} 
+                                onChange={(e) => { setConfirmPassword(e.target.value) }}
+                                theme={theme}
                             />
-                        </div>
+                        </FormGroup>
 
                         {errorMessage && (
-                            <span className='text-red-500 font-bold'>{errorMessage}</span>
+                            <ErrorMessage>{errorMessage}</ErrorMessage>
                         )}
 
-                        <button
+                        <SubmitButton
                             type="submit"
                             disabled={isRegistering}
-                            className={`w-full px-4 py-2 font-medium rounded-lg ${isRegistering ? 'bg-gray-400 cursor-not-allowed text-black' : 'bg-indigo-600 text-black hover:text-white hover:bg-indigo-700 hover:shadow-xl transition duration-300'}`}
+                            theme={theme}
+                            isRegistering={isRegistering}
                         >
                             {isRegistering ? 'Signing Up...' : 'Sign Up'}
-                        </button>
+                        </SubmitButton>
                         {!userLoggedIn && (
-                            <div className="text-sm text-center text-gray-600">
+                            <SignInLink theme={theme}>
                                 Already have an account? {' '}
-                                <Link to={'/login'} className="text-indigo-600 hover:underline font-bold">Continue</Link>
-                            </div>
+                                <StyledLink to={'/login'} theme={theme}>Continue</StyledLink>
+                            </SignInLink>
                         )}
-                    </form>
-                </div>
-            </main>
+                    </RegisterForm>
+                </RegisterCard>
+            </RegisterContainer>
         </>
     );
 };
 
 export default Register;
+
+// Styled Components
+const RegisterContainer = styled.main`
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFF8E7'};
+  transition: background-color 0.3s ease;
+  padding-top: 80px;
+`;
+
+const RegisterCard = styled.div`
+  width: 420px;
+  padding: 2.5rem;
+  background-color: ${props => props.theme === 'dark' ? '#1E293B' : '#FFFFFF'};
+  border: 1px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  border-radius: 16px;
+  box-shadow: ${props => props.theme === 'dark' 
+    ? '0 20px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)' 
+    : '0 20px 32px rgba(0, 0, 0, 0.08)'};
+  transition: all 0.3s ease;
+`;
+
+const LogoContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+`;
+
+const LogoImage = styled.img`
+  height: 80px;
+`;
+
+const TitleContainer = styled.div`
+  text-align: center;
+  margin-bottom: 1.5rem;
+`;
+
+const Title = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
+  margin: 0.5rem 0 0 0;
+  transition: color 0.3s ease;
+`;
+
+const RegisterForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Label = styled.label`
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#1F2937'};
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.875rem 1rem;
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFFFFF'};
+  border: 2px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+
+  &:focus {
+    border-color: ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
+    background-color: ${props => props.theme === 'dark' ? '#1E293B' : '#FFFFFF'};
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 0 0 3px rgba(99, 102, 241, 0.1)' 
+      : '0 0 0 3px rgba(59, 130, 246, 0.1)'};
+  }
+
+  &::placeholder {
+    color: ${props => props.theme === 'dark' ? '#64748B' : '#9CA3AF'};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const ErrorMessage = styled.span`
+  color: #EF4444;
+  font-weight: 700;
+  font-size: 0.875rem;
+`;
+
+const SubmitButton = styled.button`
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: ${props => props.isRegistering ? 'not-allowed' : 'pointer'};
+  transition: all 0.3s ease;
+  background-color: ${props => props.isRegistering 
+    ? (props.theme === 'dark' ? '#475569' : '#9CA3AF')
+    : (props.theme === 'dark' ? '#6366F1' : '#3B82F6')};
+  color: white;
+  font-size: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow: ${props => !props.isRegistering 
+    ? (props.theme === 'dark' 
+      ? '0 4px 14px rgba(99, 102, 241, 0.4)' 
+      : '0 4px 14px rgba(59, 130, 246, 0.4)')
+    : 'none'};
+
+  &:hover:not(:disabled) {
+    background-color: ${props => props.theme === 'dark' ? '#4F46E5' : '#2563EB'};
+    transform: translateY(-2px);
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 6px 20px rgba(99, 102, 241, 0.5)' 
+      : '0 6px 20px rgba(59, 130, 246, 0.5)'};
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+`;
+
+const SignInLink = styled.div`
+  text-align: center;
+  font-size: 0.875rem;
+  color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#4B5563'};
+  transition: color 0.3s ease;
+`;
+
+const StyledLink = styled(Link)`
+  color: ${props => props.theme === 'dark' ? '#818CF8' : '#667EEA'};
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &:hover {
+    text-decoration: underline;
+    color: ${props => props.theme === 'dark' ? '#A78BFA' : '#818CF8'};
+  }
+`;

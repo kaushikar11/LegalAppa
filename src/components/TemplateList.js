@@ -1,52 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { getStorage, ref, listAll, getDownloadURL, deleteObject } from "firebase/storage";
-import { gemini } from '../firebase/gemini';
+import { useNavigate } from 'react-router-dom';
+import styled, { keyframes, createGlobalStyle } from 'styled-components';
+import { useAuth } from '../contexts/authContext';
+import { useTheme } from '../contexts/themeContext';
+import { list, remove } from '../storage/supabase';
 import mammoth from 'mammoth';
 import * as pdfjs from 'pdfjs-dist';
-import styled, { keyframes, createGlobalStyle } from 'styled-components';
-import axios from 'axios';
-import cors from 'cors';
-import { useAuth } from '../contexts/authContext';
-
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const TemplatesList = () => {
   const [templates, setTemplates] = useState([]);
-  const [responseText, setResponseText] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [templateDetails, setTemplateDetails] = useState('');
-  const [isConverting, setIsConverting] = useState(false);
-  const { currentUser } = useAuth(); 
-  
-  const genAI = new GoogleGenerativeAI(gemini);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchTemplates = async () => {
-      const storage = getStorage();
-      const listRef = ref(storage, `uploads/${currentUser.email}`);
-      
       try {
-        const res = await listAll(listRef);
-        const templatesData = await Promise.all(
-          res.items.map(async (itemRef) => {
-            const url = await getDownloadURL(itemRef);
-            return {
-              id: itemRef.name,
-              name: itemRef.name,
-              url: url,
-            };
-          })
-        );
-        
+        const templatesData = await list(currentUser.email);
         setTemplates(templatesData);
       } catch (error) {
         console.error("Error fetching templates:", error);
       }
     };
 
-    fetchTemplates();
-  }, [currentUser.email]);
+    if (currentUser?.email) {
+      fetchTemplates();
+    }
+  }, [currentUser?.email]);
 
   const extractTextFromDOCX = async (arrayBuffer) => {
     const result = await mammoth.extractRawText({ arrayBuffer });
@@ -67,7 +47,7 @@ const TemplatesList = () => {
   const handleTemplateClick = async (template) => {
     try {
       const response = await fetch(template.url, {
-        mode: 'cors', // Ensure the request uses CORS mode
+        mode: 'cors',
       });
       if (!response.ok) {
         throw new Error(`Failed to fetch template. Status: ${response.status} - ${response.statusText}`);
@@ -83,7 +63,14 @@ const TemplatesList = () => {
         throw new Error('Unsupported file format');
       }
   
-      setSelectedTemplate(text);
+      // Navigate to edit page with template data
+      navigate('/edit', {
+        state: {
+          templateContent: text,
+          templateName: template.name,
+          templateUrl: template.url
+        }
+      });
     } catch (error) {
       console.error("Error extracting text from template:", error.message);
       alert(`Error: ${error.message}`);
@@ -95,58 +82,17 @@ const TemplatesList = () => {
     if (!confirmDelete) return;
   
     try {
-      const storage = getStorage();
-      const templateRef = ref(storage, `uploads/${currentUser.email}/${template.id}`);
-      
-      // Delete the object using deleteObject
-      await deleteObject(templateRef);
+      // template.id now contains the full path (e.g., "uploads/user@email.com/timestamp_filename.docx")
+      await remove(template.id);
   
       // Remove from state
       setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== template.id));
     } catch (error) {
       console.error("Error deleting template:", error);
+      alert(`Failed to delete file: ${error.message || 'Unknown error'}`);
     }
   };
 
-  const handleDetailsSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedTemplate) return;
-
-    const prompt = `
-      Additional details: ${templateDetails} 
-      
-      ensuring proper centering and formatting:
-      
-      Extracted text: ${selectedTemplate}
-      
-      Please provide the output in LaTeX format & no extra text. Please don't hallucinate and make sure the latex syntax is correct.
-    `;
-
-    try {
-      setIsConverting(true);
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const latexText = response.text();
-      setResponseText(latexText);
-
-      // Send LaTeX to server for conversion
-      const serverResponse = await axios.post('https://latextodocx.onrender.com/convert', { latex: latexText }, { responseType: 'blob' });
-      
-      // Create a download link for the converted file
-      const url = window.URL.createObjectURL(new Blob([serverResponse.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'legalappa_doc.docx');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error("Error generating or converting content:", error);
-      setResponseText("An error occurred while processing the document.");
-    } finally {
-      setIsConverting(false);
-    }
-  };
 
   const GlobalStyle = createGlobalStyle`
 @keyframes fadeIn {
@@ -159,60 +105,36 @@ const TemplatesList = () => {
 }
 
 body {
-  background-color: #fff; /* Set the background color to white */
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFF8E7'};
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif; /* Optional: Set a global font */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  transition: background-color 0.3s ease;
 }
 `;
 
   return (
     <>
-    <GlobalStyle />
-      <UserInfo>
+    <GlobalStyle theme={theme} />
+      <UserInfo theme={theme}>
         You are logged in as {currentUser.displayName ? currentUser.displayName : currentUser.email}
       </UserInfo>
-      <Container>
+      <Container theme={theme}>
         <Section>
-          <Title>Your Templates</Title>
+          <Title theme={theme}>Your Templates</Title>
           <TemplateList>
             {templates.map(template => (
-              <TemplateItem key={template.id}>
-                <TemplateName>{template.name}</TemplateName>
+              <TemplateItem key={template.id} theme={theme}>
+                <TemplateName theme={theme}>{template.name}</TemplateName>
                 <ButtonContainer>
-                  <Button onClick={() => handleTemplateClick(template)}>Extract and Edit</Button>
-                  <DeleteButton onClick={() => handleDelete(template)}>Delete</DeleteButton>
+                  <Button onClick={() => handleTemplateClick(template)} theme={theme}>Extract and Edit</Button>
+                  <DeleteButton onClick={() => handleDelete(template)} theme={theme}>Delete</DeleteButton>
                 </ButtonContainer>
               </TemplateItem>
             ))}
           </TemplateList>
         </Section>
 
-        {selectedTemplate && (
-  <Section>
-    <Title>Edit Document</Title>
-    <EditableDocument
-      contentEditable={true}
-      suppressContentEditableWarning={true}
-      dangerouslySetInnerHTML={{ __html: selectedTemplate.replace(/\n/g, '<br/>') }}
-    />
-    <Form onSubmit={handleDetailsSubmit}>
-      <TextArea
-        value={templateDetails}
-        onChange={(e) => setTemplateDetails(e.target.value)}
-        placeholder="Enter additional details for template manipulation"
-        rows={5}
-      />
-      <Button type="submit">Generate Document</Button>
-    </Form>
-  </Section>
-)}
-
-
-        <Section>
-          <LaTeXOutput>{responseText}</LaTeXOutput>
-          {isConverting && <ConversionStatus>Converting to DOCX...</ConversionStatus>}
-        </Section>
       </Container>
     </>
   );
@@ -223,23 +145,44 @@ export default TemplatesList;
 
 const ConversionStatus = styled.div`
   margin-top: 1rem;
-  color: #4a90e2;
-  font-weight: bold;
+  color: ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &::before {
+    content: '⏳';
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 `;
 
 const UserInfo = styled.div`
   font-size: 1.25rem;
-  color: black;
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#4B5563'};
   margin: 1rem 0;
+  padding: 0 2rem;
+  transition: color 0.3s ease;
 `;
 
 const Container = styled.div`
-  max-width: 800px;
+  max-width: 1000px;
   margin: 2rem auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  background-color: ${props => props.theme === 'dark' ? '#1E293B' : '#FFFFFF'};
+  border-radius: 16px;
+  box-shadow: ${props => props.theme === 'dark' 
+    ? '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)' 
+    : '0 8px 32px rgba(0, 0, 0, 0.08)'};
+  border: 1px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  transition: all 0.3s ease;
 `;
 
 const Section = styled.div`
@@ -247,9 +190,10 @@ const Section = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
   font-size: 1.8rem;
   margin-bottom: 1rem;
+  transition: color 0.3s ease;
 `;
 
 const TemplateList = styled.ul`
@@ -260,9 +204,23 @@ const TemplateList = styled.ul`
 const TemplateItem = styled.li`
   display: flex;
   align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  justify-content: space-between; /* Adjust as needed */
+  padding: 1.25rem 1.5rem;
+  border: 1px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  justify-content: space-between;
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FEFDF9'};
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${props => props.theme === 'dark' ? '#334155' : '#F9FAFB'};
+    border-color: ${props => props.theme === 'dark' ? '#475569' : '#D1D5DB'};
+    transform: translateY(-2px);
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 4px 12px rgba(0, 0, 0, 0.2)' 
+      : '0 4px 12px rgba(0, 0, 0, 0.05)'};
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -272,30 +230,43 @@ const ButtonContainer = styled.div`
 
 const TemplateName = styled.h2`
   font-size: 1.2rem;
-  color: #444;
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
   margin: 0;
+  transition: color 0.3s ease;
 `;
 
 const Button = styled.button`
-  background-color: #4a90e2;
+  background-color: ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: ${props => props.theme === 'dark' 
+    ? '0 2px 8px rgba(99, 102, 241, 0.3)' 
+    : '0 2px 8px rgba(59, 130, 246, 0.3)'};
 
   &:hover {
-    background-color: #357abd;
+    background-color: ${props => props.theme === 'dark' ? '#4F46E5' : '#2563EB'};
+    transform: translateY(-2px);
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 4px 14px rgba(99, 102, 241, 0.4)' 
+      : '0 4px 14px rgba(59, 130, 246, 0.4)'};
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
 const DeleteButton = styled(Button)`
-  background-color: #e94e77;
+  background-color: ${props => props.theme === 'dark' ? '#EF4444' : '#DC2626'};
 
   &:hover {
-    background-color: #d63d5c;
+    background-color: ${props => props.theme === 'dark' ? '#F87171' : '#EF4444'};
   }
 `;
 
@@ -304,34 +275,187 @@ const Form = styled.form`
   flex-direction: column;
 `;
 
+const EditorLayout = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2.5fr);
+  gap: 2rem;
+
+  @media (max-width: 960px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+`;
+
+const BasePanel = styled.div`
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+  background-color: ${props => props.theme === 'dark' ? '#0B1220' : '#F9FAFB'};
+  border: 1px solid ${props => props.theme === 'dark' ? '#1F2937' : '#E5E7EB'};
+  box-shadow: ${props => props.theme === 'dark'
+    ? '0 10px 30px rgba(0,0,0,0.45)'
+    : '0 10px 30px rgba(15,23,42,0.06)'};
+  transition: all 0.3s ease;
+`;
+
+const EditorPanel = styled(BasePanel)``;
+
+const ControlsPanel = styled(BasePanel)``;
+
+const PanelHeader = styled.div`
+  margin-bottom: 1.25rem;
+`;
+
+const PanelTitle = styled.h2`
+  font-size: 1.2rem;
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  color: ${props => props.theme === 'dark' ? '#E5E7EB' : '#111827'};
+`;
+
+const PanelSubtitle = styled.p`
+  margin: 0;
+  font-size: 0.9rem;
+  color: ${props => props.theme === 'dark' ? '#9CA3AF' : '#6B7280'};
+`;
+
+const HelperText = styled.p`
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: ${props => props.theme === 'dark' ? '#9CA3AF' : '#6B7280'};
+`;
+
 const TextArea = styled.textarea`
-  margin-bottom: 1rem;
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  border-radius: 10px;
   font-size: 1rem;
   resize: vertical;
-  color: black; /* Ensure text color is black */
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFFFFF'};
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+
+  &:focus {
+    outline: none;
+    border-color: ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
+    background-color: ${props => props.theme === 'dark' ? '#1E293B' : '#FFFFFF'};
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 0 0 3px rgba(99, 102, 241, 0.1)' 
+      : '0 0 0 3px rgba(59, 130, 246, 0.1)'};
+  }
+
+  &::placeholder {
+    color: ${props => props.theme === 'dark' ? '#64748B' : '#9CA3AF'};
+  }
+`;
+
+const PrimaryActionButton = styled.button`
+  background: ${props => props.theme === 'dark' 
+    ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' 
+    : 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)'};
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  transition: all 0.3s ease;
+  box-shadow: ${props => props.theme === 'dark' 
+    ? '0 4px 14px rgba(99, 102, 241, 0.4)' 
+    : '0 4px 14px rgba(59, 130, 246, 0.3)'};
+  opacity: ${props => props.disabled ? 0.6 : 1};
+  position: relative;
+  overflow: hidden;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: ${props => props.theme === 'dark' 
+      ? '0 6px 20px rgba(99, 102, 241, 0.5)' 
+      : '0 6px 20px rgba(59, 130, 246, 0.4)'};
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
 `;
 
 const LaTeXOutput = styled.pre`
-  background-color: #f8f8f8;
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#F9FAFB'};
   padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  border-radius: 8px;
   white-space: pre-wrap;
   font-size: 1rem;
-  color: #333;
+  color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#4B5563'};
+  transition: all 0.3s ease;
+`;
+
+const DocumentContainer = styled.div`
+  border: 2px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
+  border-radius: 12px;
+  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#FFFFFF'};
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  box-shadow: ${props => props.theme === 'dark' 
+    ? 'inset 0 2px 4px rgba(0, 0, 0, 0.2)' 
+    : 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'};
+  transition: all 0.3s ease;
+
+  &:focus-within {
+    border-color: ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
+    box-shadow: ${props => props.theme === 'dark' 
+      ? 'inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(99, 102, 241, 0.1)' 
+      : 'inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(59, 130, 246, 0.1)'};
+  }
 `;
 
 const EditableDocument = styled.div`
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f8f8f8;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  max-height: 450px;
+  overflow-y: auto;
+  overflow-x: hidden;
   white-space: pre-wrap;
-  color: black; /* Ensure text color is black */
+  color: ${props => props.theme === 'dark' ? '#F1F5F9' : '#1F2937'};
   font-size: 1rem;
+  line-height: 1.7;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+
+  /* Custom Scrollbar */
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${props => props.theme === 'dark' ? '#1E293B' : '#F9FAFB'};
+    border-radius: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${props => props.theme === 'dark' ? '#475569' : '#D1D5DB'};
+    border-radius: 5px;
+    transition: background 0.2s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${props => props.theme === 'dark' ? '#64748B' : '#9CA3AF'};
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  /* Focus effect on container */
+  &:focus-visible {
+    outline: 2px solid ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
+    outline-offset: -2px;
+  }
 `;
 
