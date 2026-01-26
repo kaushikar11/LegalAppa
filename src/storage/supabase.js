@@ -27,7 +27,7 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 const sanitizeFilename = (filename) => {
   // Remove or replace invalid characters: [ ] { } ( ) < > | \ / : * ? " '
   return filename
-    .replace(/[\[\]{}()<>|\\/:*?"']/g, '_') // Replace invalid chars with underscore
+    .replace(/[[\]{}()<>|\\/:*?"']/g, '_') // Replace invalid chars with underscore
     .replace(/\s+/g, '_') // Replace spaces with underscore
     .replace(/_{2,}/g, '_') // Replace multiple underscores with single
     .replace(/^_+|_+$/g, ''); // Remove leading/trailing underscores
@@ -53,7 +53,7 @@ export const upload = async (file, userId, onProgress, bucket = 'documents', cus
       onProgress(10);
     }
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -175,7 +175,7 @@ export const update = async (file, filePath, bucket = 'documents', onProgress = 
       onProgress(10);
     }
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from(bucket)
       .update(filePath, file, {
         cacheControl: '3600',

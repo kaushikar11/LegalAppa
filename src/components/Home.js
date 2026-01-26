@@ -348,14 +348,3 @@ const TestimonialText = styled.p`
 const TestimonialAuthor = styled.p`
   color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#4B5563'};
 `;
-
-const CTASection = styled.section`
-  text-align: center;
-  padding: 4rem 0;
-`;
-
-const CTATitle = styled.h2`
-  color: #333;
-  font-size: 2.5rem;
-  margin-bottom: 2rem;
-`;

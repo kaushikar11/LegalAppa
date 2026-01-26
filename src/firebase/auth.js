@@ -21,22 +21,19 @@ export const doSignInWithEmailAndPassword = (email, password) => {
 
 export const doSignInWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
+  await signInWithPopup(auth, provider);
   // add user to firestore
 };
 
 export const doSignInWithFacebook = async () => {
   const provider = new FacebookAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
+  await signInWithPopup(auth, provider);
   // add user to firestore
 };
 
 export const doSignInWithTwitter = async () => {
   const provider = new TwitterAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
+  await signInWithPopup(auth, provider);
   // add user to firestore
 };
 

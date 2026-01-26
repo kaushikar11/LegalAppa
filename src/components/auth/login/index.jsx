@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
-import { doSignInWithEmailAndPassword, doSignInWithGoogle, doSignInWithFacebook, doSignInWithTwitter } from '../../../firebase/auth';
+import { doSignInWithEmailAndPassword, doSignInWithGoogle } from '../../../firebase/auth';
 import { useAuth } from '../../../contexts/authContext';
 import { useTheme } from '../../../contexts/themeContext';
 import styled from 'styled-components';
@@ -46,28 +46,6 @@ const Login = () => {
         if (!isSigningIn) {
             setIsSigningIn(true);
             doSignInWithGoogle().catch((err) => {
-                setIsSigningIn(false);
-            });
-        }
-    };
-
-    const onFacebookSignIn = (e) => {
-        e.preventDefault();
-        setErrorMessage('');
-        if (!isSigningIn) {
-            setIsSigningIn(true);
-            doSignInWithFacebook().catch((err) => {
-                setIsSigningIn(false);
-            });
-        }
-    };
-
-    const onTwitterSignIn = (e) => {
-        e.preventDefault();
-        setErrorMessage('');
-        if (!isSigningIn) {
-            setIsSigningIn(true);
-            doSignInWithTwitter().catch((err) => {
                 setIsSigningIn(false);
             });
         }

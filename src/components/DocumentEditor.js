@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
-import { useAuth } from '../contexts/authContext';
 import { useTheme } from '../contexts/themeContext';
 import { GoogleGenAI } from "@google/genai";
 import { gemini } from '../firebase/gemini';
@@ -30,7 +29,6 @@ const extractTextFromPDF = async (arrayBuffer) => {
 const DocumentEditor = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const { theme } = useTheme();
   
   const [templateContent, setTemplateContent] = useState('');
@@ -843,27 +841,5 @@ const Spinner = styled.div`
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
-`;
-
-const LaTeXOutput = styled.pre`
-  background-color: ${props => props.theme === 'dark' ? '#0F172A' : '#F9FAFB'};
-  padding: 1rem;
-  border: 1px solid ${props => props.theme === 'dark' ? '#334155' : '#E5E7EB'};
-  border-radius: 8px;
-  white-space: pre-wrap;
-  font-size: 1rem;
-  color: ${props => props.theme === 'dark' ? '#CBD5E1' : '#4B5563'};
-  transition: all 0.3s ease;
-`;
-
-const ConversionStatus = styled.div`
-  margin-top: 1rem;
-  color: ${props => props.theme === 'dark' ? '#6366F1' : '#3B82F6'};
-  font-weight: 600;
-  font-size: 0.9375rem;
-  transition: color 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 `;
 
